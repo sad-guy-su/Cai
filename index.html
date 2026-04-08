@@ -1,39 +1,52 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Mini AI Chatbot</title>
+  <title>Interactive AI Page</title>
   <style>
-    body { font-family: Arial; padding: 20px; background: #f5f5f5; }
-    #chatBox { width: 100%; max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    #messages { min-height: 150px; border: 1px solid #ddd; padding: 10px; border-radius: 8px; margin-bottom: 10px; background: #f9f9f9; overflow-y: auto; max-height: 300px; }
-    input[type=text] { width: 80%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
-    button { padding: 10px 15px; border: none; background: #007bff; color: white; border-radius: 8px; cursor: pointer; }
+    body { font-family: Arial; background: #f5f5f5; padding: 20px; }
+    #chatBox { max-width: 700px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    #messages { min-height: 200px; border: 1px solid #ddd; padding: 10px; border-radius: 8px; margin-bottom: 10px; background: #f9f9f9; overflow-y: auto; max-height: 350px; }
+    input[type=text], select { width: 70%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 10px; }
+    button { padding: 10px 15px; border: none; background: #007bff; color: white; border-radius: 8px; cursor: pointer; margin-left: 5px; }
     button:hover { background: #0056b3; }
     img { max-width: 100%; margin-top: 10px; border-radius: 8px; }
+    label { font-weight: bold; }
   </style>
 </head>
 <body>
 
 <div id="chatBox">
-  <h2>Mini AI Chatbot</h2>
+  <h2>Interactive AI Page</h2>
+
+  <div>
+    <label>Select Model:</label>
+    <select id="modelSelect">
+      <option value="claude-sonnet-4-6">Claude Sonnet 4.6</option>
+      <option value="claude-opus-4-6">Claude Opus 4.6</option>
+      <option value="claude-haiku-4-5">Claude Haiku 4.5</option>
+      <option value="claude-opus-4-5">Claude Opus 4.5</option>
+    </select>
+  </div>
 
   <div id="messages">AI responses will appear here...</div>
 
-  <input type="text" id="userInput" placeholder="Type your message" />
-  <button onclick="sendMessage()">Send</button>
+  <div>
+    <input type="text" id="userInput" placeholder="Type your message" />
+    <button onclick="sendMessage()">Send</button>
+  </div>
 
-  <hr>
+  <div>
+    <label>Upload Text File:</label>
+    <input type="file" id="fileInput" />
+    <button onclick="uploadFile()">Send File</button>
+  </div>
 
-  <label>Upload Text File:</label>
-  <input type="file" id="fileInput" />
-  <button onclick="uploadFile()">Send File</button>
-
-  <hr>
-
-  <label>Upload Image:</label>
-  <input type="file" id="imageInput" accept="image/*" />
-  <button onclick="uploadImage()">Send Image</button>
-  <img id="preview" style="display:none;" />
+  <div>
+    <label>Upload Image:</label>
+    <input type="file" id="imageInput" accept="image/*" />
+    <button onclick="uploadImage()">Send Image</button>
+    <img id="preview" style="display:none;" />
+  </div>
 </div>
 
 <script src="https://js.puter.com/v2/"></script>
@@ -45,7 +58,9 @@ async function sendMessage() {
     addMessage("You: " + input);
     document.getElementById("userInput").value = "";
 
-    const response = await puter.ai.chat(input, { model: "claude-sonnet-4-6" });
+    const model = document.getElementById("modelSelect").value;
+
+    const response = await puter.ai.chat(input, { model: model });
     const text = response?.message?.content?.[0]?.text || "No response";
     addMessage("AI: " + text);
 }
@@ -55,9 +70,11 @@ async function uploadFile() {
     if (!file) return alert("Choose a file first");
 
     const text = await file.text();
-    addMessage("You uploaded a file:\n" + file.name);
+    addMessage("You uploaded file: " + file.name);
 
-    const response = await puter.ai.chat("Analyze this content:\n" + text, { model: "claude-sonnet-4-6" });
+    const model = document.getElementById("modelSelect").value;
+
+    const response = await puter.ai.chat("Analyze this content:\n" + text, { model: model });
     const result = response?.message?.content?.[0]?.text || "No response";
     addMessage("AI: " + result);
 }
@@ -71,7 +88,9 @@ async function uploadImage() {
         document.getElementById("preview").src = e.target.result;
         document.getElementById("preview").style.display = "block";
 
-        const response = await puter.ai.chat("Describe this image:\n" + e.target.result, { model: "claude-sonnet-4-6" });
+        const model = document.getElementById("modelSelect").value;
+
+        const response = await puter.ai.chat("Describe this image:\n" + e.target.result, { model: model });
         const result = response?.message?.content?.[0]?.text || "No response";
         addMessage("AI: " + result);
     };
