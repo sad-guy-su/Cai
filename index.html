@@ -1,38 +1,88 @@
 <!DOCTYPE html>
 <html>
+<head>
+  <title>Mini AI Chatbot</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+    #chatBox { width: 100%; max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    #messages { min-height: 150px; border: 1px solid #ddd; padding: 10px; border-radius: 8px; margin-bottom: 10px; background: #f9f9f9; overflow-y: auto; max-height: 300px; }
+    input[type=text] { width: 80%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
+    button { padding: 10px 15px; border: none; background: #007bff; color: white; border-radius: 8px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    img { max-width: 100%; margin-top: 10px; border-radius: 8px; }
+  </style>
+</head>
 <body>
 
-<h2>AI Response:</h2>
-<div id="output">Loading...</div>
+<div id="chatBox">
+  <h2>Mini AI Chatbot</h2>
+
+  <div id="messages">AI responses will appear here...</div>
+
+  <input type="text" id="userInput" placeholder="Type your message" />
+  <button onclick="sendMessage()">Send</button>
+
+  <hr>
+
+  <label>Upload Text File:</label>
+  <input type="file" id="fileInput" />
+  <button onclick="uploadFile()">Send File</button>
+
+  <hr>
+
+  <label>Upload Image:</label>
+  <input type="file" id="imageInput" accept="image/*" />
+  <button onclick="uploadImage()">Send Image</button>
+  <img id="preview" style="display:none;" />
+</div>
 
 <script src="https://js.puter.com/v2/"></script>
 
 <script>
-async function start() {
-    try {
-        // Wait a bit to ensure Puter loads
-        await new Promise(r => setTimeout(r, 1000));
+async function sendMessage() {
+    const input = document.getElementById("userInput").value.trim();
+    if (!input) return;
+    addMessage("You: " + input);
+    document.getElementById("userInput").value = "";
 
-        if (!window.puter) {
-            document.getElementById("output").innerText = "Puter still not loaded";
-            return;
-        }
-
-        const response = await puter.ai.chat(
-            "yes deep dive ",
-            { model: "claude-opus-4-6" }
-        );
-
-        document.getElementById("output").innerText =
-            response?.message?.content?.[0]?.text || "No response";
-
-    } catch (e) {
-        document.getElementById("output").innerText = "Error: " + e.message;
-        console.error(e);
-    }
+    const response = await puter.ai.chat(input, { model: "claude-sonnet-4-6" });
+    const text = response?.message?.content?.[0]?.text || "No response";
+    addMessage("AI: " + text);
 }
 
-start();
+async function uploadFile() {
+    const file = document.getElementById("fileInput").files[0];
+    if (!file) return alert("Choose a file first");
+
+    const text = await file.text();
+    addMessage("You uploaded a file:\n" + file.name);
+
+    const response = await puter.ai.chat("Analyze this content:\n" + text, { model: "claude-sonnet-4-6" });
+    const result = response?.message?.content?.[0]?.text || "No response";
+    addMessage("AI: " + result);
+}
+
+async function uploadImage() {
+    const file = document.getElementById("imageInput").files[0];
+    if (!file) return alert("Choose an image");
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        document.getElementById("preview").src = e.target.result;
+        document.getElementById("preview").style.display = "block";
+
+        const response = await puter.ai.chat("Describe this image:\n" + e.target.result, { model: "claude-sonnet-4-6" });
+        const result = response?.message?.content?.[0]?.text || "No response";
+        addMessage("AI: " + result);
+    };
+    reader.readAsDataURL(file);
+}
+
+function addMessage(msg) {
+    const messages = document.getElementById("messages");
+    messages.innerHTML += msg + "<br><br>";
+    messages.scrollTop = messages.scrollHeight;
+}
 </script>
 
 </body>
