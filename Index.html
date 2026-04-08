@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>AI Response:</h2>
+<div id="output">Loading...</div>
+
+<script src="https://js.puter.com/v2/"></script>
+
+<script>
+async function start() {
+    try {
+        // Wait a bit to ensure Puter loads
+        await new Promise(r => setTimeout(r, 1000));
+
+        if (!window.puter) {
+            document.getElementById("output").innerText = "Puter still not loaded";
+            return;
+        }
+
+        const response = await puter.ai.chat(
+            "Say hello in one short line",
+            { model: "claude-sonnet-4-6" }
+        );
+
+        document.getElementById("output").innerText =
+            response?.message?.content?.[0]?.text || "No response";
+
+    } catch (e) {
+        document.getElementById("output").innerText = "Error: " + e.message;
+        console.error(e);
+    }
+}
+
+start();
+</script>
+
+</body>
+</html>
